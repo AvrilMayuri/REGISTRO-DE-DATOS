@@ -1,139 +1,183 @@
 import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.*;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
+import javax.swing.table.*;
 
 public class EncuestaApp extends JFrame {
-    private final Color COLOR_VINO = Color.decode("#780000");
+    private final Color VINO = new Color(139, 0, 0);
+    private final Color AZUL_OSCURO = new Color(0, 0, 139);
+    private final Color GRIS_AZULADO = new Color(60, 70, 80);
+    private final Color NEGRO = Color.BLACK;
+
     private JComboBox<String>[] comboBoxes = new JComboBox[14];
     private DefaultTableModel tableModel;
     private JTable table;
-    private final String RUTA_DESCARGAS = System.getProperty("user.home") + File.separator + "Downloads" + File.separator;
+
+    private String[] cabeceras = {"Item 1-1", "Item 1-2", "Item 1-3", "Item 1-4", "Item 2-1", "Item 2-2", "Item 2-3", "Item 2-4", "Item 2-5", "Item 2-6", "Item 2-7", "Item 2-8", "Item 2-9", "Item 2-10"};
+    
+    private String[] preguntas = {
+        "¿Accesibilidad pagos?", "¿% ingresos?", "¿Frecuencia dificultad?", "¿Apoyo económico?", 
+        "¿Calidad pensión?", "¿Aumento costos?", "¿Satisfacción costos?", "¿Preparación docentes?", 
+        "¿Métodos enseñanza?", "¿Actualización contenidos?", "¿Retroalimentación?", "¿Calidad enseñanza?", 
+        "¿Satisfacción carrera?", "¿Recomendarías UTP?"
+    };
+
+    private String[][] etiquetasOpciones = {
+        {"1: Nada accesibles", "2: Poco accesibles", "3: Accesibles", "4: Muy accesibles"},
+        {"1: < 25%", "2: 25% - 50%", "3: 51% - 75%", "4: > 75%"},
+        {"1: Nunca", "2: Rara vez", "3: A veces", "4: Frecuentemente", "5: Siempre"},
+        {"1: Sí", "2: No"},
+        {"1: Muy bajo", "2: Bajo", "3: Moderado", "4: Alto", "5: Muy alto"},
+        {"1: Sí", "2: No", "3: No seguro"},
+        {"1: Muy insatisfecho", "2: Insatisfecho", "3: Neutral", "4: Satisfecho", "5: Muy satisfecho"},
+        {"1: Nada preparados", "2: Poco preparados", "3: Moderado", "4: Bien preparados", "5: Muy bien preparados"},
+        {"1: Nunca", "2: Rara vez", "3: A veces", "4: Frecuentemente", "5: Siempre"},
+        {"1: Nada actualizados", "2: Poco actualizados", "3: Moderado", "4: Actualizados", "5: Muy actualizados"},
+        {"1: Nunca", "2: Rara vez", "3: A veces", "4: Frecuentemente", "5: Siempre"},
+        {"1: Muy mala", "2: Mala", "3: Regular", "4: Buena", "5: Muy buena"},
+        {"1: Muy insatisfecho", "2: Insatisfecho", "3: Neutral", "4: Satisfecho", "5: Muy satisfecho"},
+        {"1: Sí", "2: No", "3: Tal vez"}
+    };
 
     public EncuestaApp() {
-        setTitle("Encuesta UTP - Registro de Datos");
-        setSize(1100, 700);
+        setTitle("Sistema de Gestión de Encuestas - UTP");
+        setSize(1300, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        getContentPane().setBackground(Color.WHITE);
+        
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(GRIS_AZULADO);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
 
-        // --- Panel Izquierdo (Formulario) ---
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
-        formPanel.setBackground(Color.WHITE);
-
-        String[] preguntas = {
-            "Item 1-1: Accesibilidad pagos", "Item 2-1: % ingresos", "Item 3-1: Dificultad pago", 
-            "Item 4-1: Apoyo económico", "Item 5-1: Calificación pensión", "Item 6-1: Aumento costos", 
-            "Item 7-1: Satisfacción costos", "Item 1-2: Preparación docente", "Item 2-2: Facilidad aprendizaje", 
-            "Item 3-2: Actualización contenidos", "Item 4-2: Retroalimentación", "Item 5-2: Calidad enseñanza", 
-            "Item 6-2: Satisfacción calidad", "Item 7-2: Recomendación UTP"
-        };
+        // Título en la parte izquierda
+        JLabel tituloIzq = new JLabel("REGISTRO DE DATOS DE LA ENCUESTA");
+        tituloIzq.setForeground(Color.WHITE);
+        tituloIzq.setFont(new Font("Arial", Font.BOLD, 18));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        formPanel.add(tituloIzq, gbc);
 
         for (int i = 0; i < 14; i++) {
-            JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            p.setBackground(Color.WHITE);
+            gbc.gridx = 0; gbc.gridy = i + 1; gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.WEST;
             JLabel lbl = new JLabel(preguntas[i]);
-            lbl.setPreferredSize(new Dimension(220, 25));
-            comboBoxes[i] = new JComboBox<>(new String[]{"1", "2", "3", "4", "5"});
-            p.add(lbl);
-            p.add(comboBoxes[i]);
-            formPanel.add(p);
+            lbl.setForeground(Color.WHITE);
+            formPanel.add(lbl, gbc);
+            
+            gbc.gridx = 1;
+            String[] nums = new String[etiquetasOpciones[i].length];
+            for(int j=0; j<nums.length; j++) nums[j] = String.valueOf(j+1);
+            comboBoxes[i] = new JComboBox<>(nums);
+            formPanel.add(comboBoxes[i], gbc);
         }
 
-        // --- Botones Corregidos ---
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 20));
-        btnPanel.setBackground(Color.WHITE);
+        JPanel btnPanel = new JPanel(new FlowLayout());
+        btnPanel.setBackground(GRIS_AZULADO);
+        JButton bReg = crearBoton("Registrar", new Color(0, 100, 0));
+        JButton bBor = crearBoton("Borrar", VINO);
+        JButton bAna = crearBoton("Analizar", AZUL_OSCURO);
+        JButton bExp = crearBoton("Exportar CSV", Color.GRAY);
         
-        // Colores: Principal (Vino), Borrar (Rojo), Exportar (Vino), Abrir (Verde)
-        JButton btnRegistrar = crearBotonEstilizado("Registrar", COLOR_VINO);
-        JButton btnBorrar = crearBotonEstilizado("Borrar Fila", Color.RED);
-        JButton btnExportar = crearBotonEstilizado("Exportar CSV", COLOR_VINO);
-        JButton btnAbrir = crearBotonEstilizado("Abrir Descargas", new Color(0, 150, 70));
-
-        btnRegistrar.addActionListener(e -> registrarDatos());
-        btnBorrar.addActionListener(e -> borrarFila());
-        btnExportar.addActionListener(e -> exportarCSV());
-        btnAbrir.addActionListener(e -> abrirCarpetaDescargas());
-
-        btnPanel.add(btnRegistrar);
-        btnPanel.add(btnBorrar);
-        btnPanel.add(btnExportar);
-        btnPanel.add(btnAbrir);
-        formPanel.add(btnPanel);
-
-        // --- Tabla con Cabecera en Rojo Vino ---
-        String[] col = new String[14];
-        for(int i=0; i<7; i++) col[i] = "Item"+(i+1)+"-1";
-        for(int i=7; i<14; i++) col[i] = "Item"+(i-6)+"-2";
+        bReg.addActionListener(e -> {
+            String[] fila = new String[14];
+            for (int i = 0; i < 14; i++) fila[i] = (String) comboBoxes[i].getSelectedItem();
+            tableModel.addRow(fila);
+        });
+        bBor.addActionListener(e -> { if(table.getSelectedRow() != -1) tableModel.removeRow(table.getSelectedRow()); });
+        bAna.addActionListener(e -> mostrarDashboard());
+        bExp.addActionListener(e -> exportarCSV());
         
-        tableModel = new DefaultTableModel(col, 0);
+        btnPanel.add(bReg); btnPanel.add(bBor); btnPanel.add(bAna); btnPanel.add(bExp);
+        gbc.gridx = 0; gbc.gridy = 16; gbc.gridwidth = 2;
+        formPanel.add(btnPanel, gbc);
+
+        tableModel = new DefaultTableModel(cabeceras, 0);
         table = new JTable(tableModel);
+        table.setBackground(Color.DARK_GRAY);
+        table.setForeground(Color.WHITE);
         
-        JTableHeader header = table.getTableHeader();
-        header.setBackground(COLOR_VINO);
-        header.setForeground(Color.WHITE);
-        header.setOpaque(true);
-
+        TableCellRenderer headerRenderer = (JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) -> {
+            JLabel lbl = new JLabel(value.toString());
+            lbl.setOpaque(true);
+            lbl.setBackground(VINO);
+            lbl.setForeground(Color.WHITE);
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            lbl.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            return lbl;
+        };
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+        
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(formPanel), new JScrollPane(table));
-        splitPane.setDividerLocation(500); 
+        splitPane.setDividerLocation(500);
         add(splitPane);
+    }
+
+    private void mostrarDashboard() {
+        if(tableModel.getRowCount() == 0) return;
+        JDialog d = new JDialog(this, "Análisis Detallado", true);
+        d.setSize(450, 600);
         
-        setLocationRelativeTo(null);
-    }
-
-    private JButton crearBotonEstilizado(String text, Color color) {
-        JButton btn = new JButton(text);
-        btn.setBackground(color);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(true); // OBLIGATORIO para mostrar el fondo
-        btn.setOpaque(true);           // OBLIGATORIO para mostrar el fondo
-        btn.setBorder(BorderFactory.createRaisedBevelBorder());
-        btn.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btn.setPreferredSize(new Dimension(130, 35));
-        return btn;
-    }
-
-    private void registrarDatos() {
-        String[] fila = new String[14];
-        for (int i = 0; i < 14; i++) fila[i] = (String) comboBoxes[i].getSelectedItem();
-        tableModel.addRow(fila);
-    }
-
-    private void borrarFila() {
-        int row = table.getSelectedRow();
-        if (row != -1) tableModel.removeRow(row);
+        JComboBox<String> sel = new JComboBox<>(cabeceras);
+        JPanel res = new JPanel(); res.setLayout(new BoxLayout(res, BoxLayout.Y_AXIS));
+        res.setBackground(NEGRO);
+        
+        sel.addActionListener(e -> {
+            res.removeAll();
+            int col = sel.getSelectedIndex();
+            Map<String, Integer> c = new HashMap<>();
+            int max = 0;
+            for(int i=0; i<tableModel.getRowCount(); i++) {
+                String v = (String) tableModel.getValueAt(i, col);
+                c.put(v, c.getOrDefault(v, 0) + 1);
+                if(c.get(v) > max) max = c.get(v);
+            }
+            for(String opt : etiquetasOpciones[col]) {
+                String num = opt.split(":")[0];
+                int cant = c.getOrDefault(num, 0);
+                JLabel l = new JLabel(opt + ": " + cant, SwingConstants.CENTER);
+                l.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+                l.setOpaque(true);
+                l.setBackground(cant == max && max > 0 ? AZUL_OSCURO : Color.DARK_GRAY);
+                l.setForeground(Color.WHITE);
+                l.setMaximumSize(new Dimension(400, 35));
+                res.add(l);
+            }
+            res.revalidate(); res.repaint();
+        });
+        d.add(sel, BorderLayout.NORTH); d.add(new JScrollPane(res), BorderLayout.CENTER); d.setVisible(true);
     }
 
     private void exportarCSV() {
-        String archivoPath = RUTA_DESCARGAS + "datos_encuesta.csv";
-        try (PrintWriter pw = new PrintWriter(new FileWriter(archivoPath))) {
-            for (int i = 0; i < 14; i++) pw.print(tableModel.getColumnName(i) + (i == 13 ? "" : ","));
-            pw.println();
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                for (int j = 0; j < 14; j++) pw.print(tableModel.getValueAt(i, j) + (j == 13 ? "" : ","));
-                pw.println();
-            }
-            abrirCarpetaDescargas();
-        } catch (IOException e) { JOptionPane.showMessageDialog(this, "Error al guardar"); }
+        JFileChooser fc = new JFileChooser();
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File f = fc.getSelectedFile();
+            if (!f.getName().toLowerCase().endsWith(".csv")) f = new File(f.getAbsolutePath() + ".csv");
+            try (FileWriter fw = new FileWriter(f)) {
+                for (int i = 0; i < tableModel.getColumnCount(); i++) {
+                    fw.append(tableModel.getColumnName(i));
+                    if (i < tableModel.getColumnCount() - 1) fw.append(",");
+                }
+                fw.append("\n");
+                for (int i = 0; i < tableModel.getRowCount(); i++) {
+                    for (int j = 0; j < tableModel.getColumnCount(); j++) {
+                        fw.append(tableModel.getValueAt(i, j).toString());
+                        if (j < tableModel.getColumnCount() - 1) fw.append(",");
+                    }
+                    fw.append("\n");
+                }
+                JOptionPane.showMessageDialog(this, "Datos guardados como .csv correctamente.");
+            } catch (IOException e) { JOptionPane.showMessageDialog(this, "Error al guardar CSV."); }
+        }
     }
 
-    private void abrirCarpetaDescargas() {
-        try {
-            File folder = new File(RUTA_DESCARGAS);
-            if (folder.exists()) {
-                Desktop.getDesktop().open(folder);
-            } else {
-                String os = System.getProperty("os.name").toLowerCase();
-                if (os.contains("mac")) Runtime.getRuntime().exec("open " + RUTA_DESCARGAS);
-                else if (os.contains("win")) Runtime.getRuntime().exec("explorer.exe " + RUTA_DESCARGAS);
-            }
-        } catch (IOException e) { JOptionPane.showMessageDialog(this, "No se pudo abrir la carpeta"); }
+    private JButton crearBoton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setOpaque(true);
+        btn.setBorderPainted(false);
+        return btn;
     }
 
     public static void main(String[] args) {
